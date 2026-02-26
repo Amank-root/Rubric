@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE PHILOSOPHY:
+     * This ruleset enforces a strict user-ownership model where all data is architected 
+     * within private user silos. Access is granted exclusively to the authenticated 
+     * user whose UID matches the document's path and internal ownership fields.
+     *
+     * DATA STRUCTURE:
+     * All application entities (Assignments, Rubrics, Evaluations) are organized 
+     * hierarchically under `/users/{userId}/...`. This ensures physical and logical 
+     * separation of user data from the root.
+     *
+     * KEY SECURITY DECISIONS:
+     * 1. Path-Based Authorization: The `{userId}` wildcard in the path is the 
+     *    primary key for identifying resource ownership.
+     * 2. Denormalization for Authorization: Every document across all collections 
+     *    (including deeply nested subcollections like CriterionEvaluations) includes 
+     *     a `userId` field. This allows for fast, standalone authorization checks 
+     *    without requiring expensive `get()` calls to parent documents.
+     * 3. Prototyping Flexibility: While ownership is strictly enforced, the 
+     *    internal schema of documents (fields and types) is not validated to allow 
+     *    for rapid frontend iteration.
+     *
+     * STRUCTURAL SEGREGATION:
+     * There is no public or shared data in this version of the application. 
+     * Every document is treated as strictly private to the creating user.
+     */
+
+    // --- Helper Functions ---
+
+    /** @description Checks if the request is from an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Verifies ownership and ensures the document actually exists for modification. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- Collection Rules ---
+
+    /**
+     * @description Rules for assignments uploaded by students.
+     * @path /users/{userId}/assignments/{assignmentId}
+     * @allow (create) if authenticated UID is 'user_123' and userId in data is 'user_123'.
+     * @deny (list) if authenticated UID is 'user_123' but path is '/users/user_456/assignments'.
+     * @principle Enforces strict user-ownership and path-to-data consistency.
+     */
+    match /users/{userId}/assignments/{assignmentId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for evaluation rubrics created by users.
+     * @path /users/{userId}/rubrics/{rubricId}
+     * @allow (get) if owner 'user_abc' requests their own rubric.
+     * @deny (update) if 'user_abc' tries to change the 'userId' field on an existing rubric.
+     * @principle Uses ownership pattern and immutable relational fields.
+     */
+    match /users/{userId}/rubrics/{rubricId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the summary results of an assignment evaluation.
+     * @path /users/{userId}/evaluations/{evaluationId}
+     * @allow (create) if authenticated user matches path userId.
+     * @deny (delete) if user is not signed in.
+     * @principle Path-based ownership coupled with existence checks for destructive actions.
+     */
+    match /users/{userId}/evaluations/{evaluationId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Rules for detailed criteria breakdown within a specific evaluation.
+       * @path /users/{userId}/evaluations/{evaluationId}/criterionEvaluations/{criterionEvaluationId}
+       * @allow (list) if 'user_xyz' lists criteria for their own evaluation.
+       * @deny (create) if 'userId' in data does not match the 'userId' in the URL path.
+       * @principle Authorization independence via denormalized userId.
+       */
+      match /criterionEvaluations/{criterionEvaluationId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    // Default deny for any unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

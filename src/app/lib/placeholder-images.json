@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Abstract educational background with patterns",
+      "imageUrl": "https://picsum.photos/seed/rubricai1/1200/800",
+      "imageHint": "education abstract"
+    }
+  ]
+}
