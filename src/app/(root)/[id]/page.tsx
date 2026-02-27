@@ -89,7 +89,7 @@ export default function EvaluationDetailPage() {
                    <FileText className="h-8 w-8 text-primary" />
                  </div>
                  <div>
-                   <h1 className="text-3xl font-black font-headline tracking-tight">{evaluation.assignmentTitle}</h1>
+                   <h1 className="text-3xl font-black font-headline tracking-tight break-all">{evaluation.assignmentTitle}</h1>
                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                      <span className="flex items-center gap-1.5 font-medium">
                        <Calendar className="h-4 w-4" />

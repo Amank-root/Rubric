@@ -176,12 +176,12 @@ export default function Home() {
         )}
 
         <Tabs defaultValue="evaluate" className="space-y-8">
-          <TabsList className="bg-white border shadow-sm h-14 p-1 rounded-2xl">
-            <TabsTrigger value="evaluate" className="gap-2 px-8 py-2.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+          <TabsList className="bg-white border shadow-sm h-14 p-1 rounded-2xl w-full sm:w-auto">
+            <TabsTrigger value="evaluate" className="w-1/2 gap-2 px-8 py-2.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
               <FilePlus2 className="h-4 w-4" />
               New Analysis
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2 px-8 py-2.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+            <TabsTrigger value="history" className="w-1/2 gap-2 px-8 py-2.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
               <History className="h-4 w-4" />
               Recent Evaluations
             </TabsTrigger>

@@ -131,7 +131,7 @@ export function EvaluationForm({ onEvaluate, isLoading }: EvaluationFormProps) {
                 type="button" 
                 variant="outline" 
                 size="sm" 
-                className="w-full gap-2 border-dashed border-2 py-6 bg-white"
+                className="w-full gap-2 border-dashed border-2 py-6 bg-white flex-wrap text-center h-auto text-wrap"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
               >
