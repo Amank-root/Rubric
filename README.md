@@ -121,11 +121,11 @@ pnpm genkit:dev
 
 ## Deployment (Firebase App Hosting)
 
-This project is optimised for **Firebase App Hosting**, which provides zero-config CI/CD from GitHub.
+This project is optimized for **Firebase App Hosting**, which provides zero-config CI/CD from GitHub.
 
 ### 1. Push your code to GitHub
 
-### 2. Initialise App Hosting
+### 2. Initialize App Hosting
 
 ```bash
 firebase init apphosting
